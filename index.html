@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#10131b"><link rel="manifest" href="manifest.webmanifest">
+<title>برنامه‌ریز کارهای من</title>
+<style>
+:root{color-scheme:dark;--bg:#10131b;--panel:#191f2b;--panel2:#202838;--line:#303b4e;--txt:#edf2fa;--muted:#a6b2c5;--accent:#8b9cff;--green:#5bd6a0;--red:#ff8585}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(140deg,#10131b,#171d2a);color:var(--txt);font:15px/1.6 Segoe UI,Tahoma,Arial,sans-serif;padding:24px}
+main{max-width:1000px;margin:auto}h1{margin:0;font-size:27px}header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:20px}.sub{color:var(--muted);margin-top:4px}
+.panel,.task{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:14px;box-shadow:0 8px 24px #0002}
+form{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:10px}label{display:block;color:var(--muted);font-size:13px;margin-bottom:4px}input,select,textarea,button{font:inherit}input,select,textarea{width:100%;background:#111722;color:var(--txt);border:1px solid var(--line);border-radius:9px;padding:10px;outline:none}textarea{min-height:75px;resize:vertical}button{border:0;border-radius:9px;padding:9px 13px;background:var(--accent);color:#101525;font-weight:700;cursor:pointer}button.secondary{background:var(--panel2);color:var(--txt);border:1px solid var(--line)}button.danger{background:#4b252c;color:#ffd9dd}button.done{background:#174637;color:#bfffe2}
+.wide{grid-column:1/-1}.actions{display:flex;gap:8px;flex-wrap:wrap}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}.stat{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:12px}.stat b{font-size:23px;display:block}.stat span{color:var(--muted);font-size:13px}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 14px}.filters button.active{background:var(--accent);color:#101525}
+.tasktop{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.task h3{margin:0 0 4px}.meta{color:var(--muted);font-size:13px}.tag{display:inline-block;border:1px solid var(--line);border-radius:99px;padding:2px 9px;margin-left:5px;font-size:12px;color:#c9d4e5}.tag.rec{border-color:#4b6b9c;color:#c4d8ff}.progress{height:8px;background:#30394a;border-radius:99px;overflow:hidden;margin:9px 0}.progress i{display:block;height:100%;background:linear-gradient(90deg,#6e8cff,#61d6ae);width:0}
+details{border-top:1px solid var(--line);margin-top:12px;padding-top:10px}summary{cursor:pointer;color:#cbd6ff;font-weight:600}.detailgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.empty{text-align:center;color:var(--muted);padding:28px}
+@media(max-width:720px){body{padding:13px}form{grid-template-columns:1fr 1fr}.stats{grid-template-columns:1fr 1fr}.tasktop{display:block}.detailgrid{grid-template-columns:1fr}}
+</style></head>
+<body><main>
+<header><div><h1>برنامه‌ریز کارهای من</h1><div class="sub">کارهای روزانه، دوره‌ای و گزارش پیشرفت — ذخیره خودکار روی همین دستگاه</div></div><div class="actions"><button class="secondary" id="enableNotifications">فعال‌سازی اعلان ویندوز</button><button class="secondary" id="testNotification">آزمایش اعلان</button><button class="secondary" id="backup">خروجی پشتیبان</button></div></header>
+<section class="stats"><div class="stat"><b id="total">۰</b><span>کل کارها</span></div><div class="stat"><b id="open">۰</b><span>باز / فعال</span></div><div class="stat"><b id="done">۰</b><span>انجام‌شده</span></div><div class="stat"><b id="periodic">۰</b><span>کار دوره‌ای</span></div></section>
+<section class="panel"><h2 style="margin:0 0 12px">افزودن کار جدید</h2>
+<form id="taskForm">
+<div><label>عنوان کار</label><input id="title" required placeholder="مثلاً بررسی ایمیل‌ها"></div>
+<div><label>نوع کار</label><select id="kind"><option value="normal">کار معمولی</option><option value="periodic">کار دوره‌ای</option></select></div>
+<div><label>دسته‌بندی</label><input id="category" placeholder="مثلاً اداری"></div>
+<div><label>اولویت</label><select id="priority"><option>متوسط</option><option>زیاد</option><option>کم</option></select></div>
+<div id="dueWrap"><label>تاریخ سررسید</label><input id="due" type="date"></div>
+<div id="timeWrap"><label>ساعت</label><input id="time" type="time"></div>
+<div id="repeatWrap" style="display:none"><label>تکرار هر چند وقت؟</label><input id="repeatEvery" type="number" min="1" value="1"></div>
+<div id="unitWrap" style="display:none"><label>واحد تکرار</label><select id="repeatUnit"><option value="minutes">دقیقه</option><option value="hours" selected>ساعت</option><option value="days">روز</option><option value="weeks">هفته</option></select></div>
+<div class="wide"><label>توضیحات اولیه (اختیاری)</label><textarea id="description" placeholder="جزئیات کار..."></textarea></div>
+<div class="wide"><button type="submit">＋ افزودن به فهرست</button></div>
+</form></section>
+<div class="filters" id="filters"><button class="active secondary" data-filter="all">همه</button><button class="secondary" data-filter="normal">کارهای معمولی</button><button class="secondary" data-filter="periodic">کارهای دوره‌ای</button><button class="secondary" data-filter="open">باز</button><button class="secondary" data-filter="done">انجام‌شده</button></div>
+<section id="list"></section>
+<div class="sub" style="text-align:center;margin-top:18px">یادآوری‌ها فقط وقتی این صفحه در مرورگر باز باشد بررسی می‌شوند.</div>
+</main>
+<script>
+const $=id=>document.getElementById(id), KEY='myWorkPlanner_v3';
+let tasks=[];try{tasks=JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){tasks=[]}
+let filter='all';
+const fa=n=>new Intl.NumberFormat('fa-IR').format(n);
+const jalali=s=>{if(!s)return '—';let d=new Date(s+'T12:00:00');return new Intl.DateTimeFormat('fa-IR-u-ca-persian',{year:'numeric',month:'long',day:'numeric'}).format(d)};
+const save=()=>localStorage.setItem(KEY,JSON.stringify(tasks));
+const duration=t=>{let n=Number(t.repeatEvery)||1,u={minutes:'دقیقه',hours:'ساعت',days:'روز',weeks:'هفته'}[t.repeatUnit];return `هر ${fa(n)} ${u}`};
+function nextDate(t){if(!t.lastDone)return t.firstDue?new Date(t.firstDue):null;let d=new Date(t.lastDone),n=Number(t.repeatEvery)||1;d.setMinutes(d.getMinutes()+n*({minutes:1,hours:60,days:1440,weeks:10080}[t.repeatUnit]||60));return d}
+function render(){
+$('total').textContent=fa(tasks.length);$('open').textContent=fa(tasks.filter(t=>!t.done).length);$('done').textContent=fa(tasks.filter(t=>t.done).length);$('periodic').textContent=fa(tasks.filter(t=>t.kind==='periodic').length);
+let shown=tasks.filter(t=>filter==='all'||(filter==='normal'&&t.kind!=='periodic')||(filter==='periodic'&&t.kind==='periodic')||(filter==='open'&&!t.done)||(filter==='done'&&t.done));
+$('list').innerHTML=shown.length?'':'<div class="empty panel">هنوز کاری در این فهرست نیست.</div>';
+shown.forEach(t=>{
+let due=t.kind==='periodic'?nextDate(t): (t.due?new Date(t.due+'T'+(t.time||'00:00')):null);
+let dueText=t.kind==='periodic'?`نوبت بعدی: ${due?new Intl.DateTimeFormat('fa-IR',{dateStyle:'medium',timeStyle:'short'}).format(due):'پس از ثبت اولین انجام'}`:`سررسید: ${jalali(t.due)}${t.time?'، ساعت '+t.time:''}`;
+let div=document.createElement('article');div.className='task';
+div.innerHTML=`<div class="tasktop"><div style="flex:1"><h3>${esc(t.title)}</h3><div class="meta"><span class="tag ${t.kind==='periodic'?'rec':''}">${t.kind==='periodic'?'دوره‌ای · '+duration(t):'معمولی'}</span><span class="tag">${esc(t.category||'بدون دسته')}</span><span class="tag">اولویت ${esc(t.priority||'متوسط')}</span></div><div class="meta" style="margin-top:6px">${dueText}</div></div><div class="actions">${t.kind==='periodic'?`<button class="done" data-act="cycle" data-id="${t.id}">این نوبت انجام شد</button>`:`<button class="done" data-act="toggle" data-id="${t.id}">${t.done?'بازگشایی':'انجام شد'}</button>`}<button class="secondary" data-act="delete" data-id="${t.id}">حذف</button></div></div>
+<div class="progress"><i style="width:${Math.max(0,Math.min(100,Number(t.progress)||0))}%"></i></div><div class="meta">پیشرفت: ${fa(Number(t.progress)||0)}٪</div>
+<details><summary>ویرایش مشخصات کار</summary><div class="detailgrid">
+<div><label>عنوان کار</label><input data-edit="title" data-id="${t.id}" value="${esc(t.title)}"></div>
+<div><label>دسته‌بندی</label><input data-edit="category" data-id="${t.id}" value="${esc(t.category||'')}"></div>
+<div><label>اولویت</label><select data-edit="priority" data-id="${t.id}"><option ${t.priority==='کم'?'selected':''}>کم</option><option ${(!t.priority||t.priority==='متوسط')?'selected':''}>متوسط</option><option ${t.priority==='زیاد'?'selected':''}>زیاد</option></select></div>
+${t.kind==='periodic'?`<div><label>تکرار هر چند وقت؟</label><input type="number" min="1" data-edit="repeatEvery" data-id="${t.id}" value="${Number(t.repeatEvery)||1}"></div><div><label>واحد تکرار</label><select data-edit="repeatUnit" data-id="${t.id}"><option value="minutes" ${t.repeatUnit==='minutes'?'selected':''}>دقیقه</option><option value="hours" ${t.repeatUnit==='hours'?'selected':''}>ساعت</option><option value="days" ${t.repeatUnit==='days'?'selected':''}>روز</option><option value="weeks" ${t.repeatUnit==='weeks'?'selected':''}>هفته</option></select></div>`:`<div><label>تاریخ سررسید</label><input type="date" data-edit="due" data-id="${t.id}" value="${t.due||''}"></div><div><label>ساعت</label><input type="time" data-edit="time" data-id="${t.id}" value="${t.time||''}"></div>`}
+<div class="wide"><label>توضیحات</label><textarea data-edit="description" data-id="${t.id}">${esc(t.description||'')}</textarea></div>
+</div><div class="actions" style="margin-top:10px"><button data-act="save-edit" data-id="${t.id}">ذخیره تغییرات</button></div></details>
+<details><summary>گزارش پیشرفت و یادداشت‌ها (باز / بسته)</summary><div class="detailgrid"><div><label>درصد پیشرفت</label><input type="range" min="0" max="100" value="${Number(t.progress)||0}" data-field="progress" data-id="${t.id}"><div class="meta">${fa(Number(t.progress)||0)}٪</div></div><div><label>یادداشت و گزارش پیشرفت</label><textarea data-field="notes" data-id="${t.id}" placeholder="چه مقدار انجام شده؟ چه چیزی باقی مانده؟">${esc(t.notes||'')}</textarea></div></div></details>
+${t.description?`<div class="meta" style="margin-top:8px">توضیحات: ${esc(t.description)}</div>`:''}`;
+$('list').appendChild(div);
+});
+}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+$('kind').addEventListener('change',()=>{let p=$('kind').value==='periodic';$('repeatWrap').style.display=p?'block':'none';$('unitWrap').style.display=p?'block':'none';$('dueWrap').style.display=p?'none':'block';$('timeWrap').style.display=p?'none':'block'});
+$('taskForm').addEventListener('submit',e=>{e.preventDefault();let periodic=$('kind').value==='periodic';tasks.unshift({id:Date.now().toString(),title:$('title').value.trim(),kind:$('kind').value,category:$('category').value,priority:$('priority').value,due:$('due').value,time:$('time').value,description:$('description').value,repeatEvery:Math.max(1,Number($('repeatEvery').value)||1),repeatUnit:$('repeatUnit').value,firstDue:periodic?new Date(Date.now()+Math.max(1,Number($('repeatEvery').value)||1)*({minutes:60000,hours:3600000,days:86400000,weeks:604800000}[$('repeatUnit').value]||3600000)).toISOString():null,lastDone:null,done:false,progress:0,notes:''});save();e.target.reset();$('kind').dispatchEvent(new Event('change'));render()});
+$('filters').addEventListener('click',e=>{let b=e.target.closest('button[data-filter]');if(!b)return;filter=b.dataset.filter;document.querySelectorAll('#filters button').forEach(x=>x.classList.toggle('active',x===b));render()});
+$('list').addEventListener('click',e=>{let b=e.target.closest('button[data-act]');if(!b)return;let t=tasks.find(x=>x.id===b.dataset.id);if(!t)return;if(b.dataset.act==='delete'){if(confirm('این کار حذف شود؟'))tasks=tasks.filter(x=>x!==t)}else if(b.dataset.act==='toggle'){t.done=!t.done;if(t.done)t.progress=100;else if(t.progress===100)t.progress=0}else if(b.dataset.act==='cycle'){t.lastDone=new Date().toISOString();t.progress=0;t.done=false;t.notes=(t.notes? t.notes+'\\n':'')+'['+new Date().toLocaleString('fa-IR')+'] این نوبت انجام شد.'}else if(b.dataset.act==='save-edit'){let card=b.closest('.task');card.querySelectorAll('[data-edit]').forEach(el=>{let k=el.dataset.edit;t[k]=k==='repeatEvery'?Math.max(1,Number(el.value)||1):el.value});if(t.kind==='periodic'&&t.lastDone===null){t.firstDue=new Date(Date.now()+Number(t.repeatEvery)*({minutes:60000,hours:3600000,days:86400000,weeks:604800000}[t.repeatUnit]||3600000)).toISOString()} }save();render()});
+$('list').addEventListener('input',e=>{let el=e.target;if(el.dataset.edit){let t=tasks.find(x=>x.id===el.dataset.id);if(t){let k=el.dataset.edit;t[k]=k==='repeatEvery'?Math.max(1,Number(el.value)||1):el.value;save()}return}if(!el.dataset.field)return;let t=tasks.find(x=>x.id===el.dataset.id);if(!t)return;t[el.dataset.field]=el.dataset.field==='progress'?Number(el.value):el.value;save();if(el.dataset.field==='progress'){let box=el.closest('details');let label=box.querySelector('.detailgrid .meta');if(label)label.textContent=fa(t.progress)+'٪';let card=el.closest('.task');card.querySelector('.progress i').style.width=t.progress+'%';card.querySelector(':scope > .meta').textContent='پیشرفت: '+fa(t.progress)+'٪'}});
+$('backup').onclick=()=>{let blob=new Blob([JSON.stringify(tasks,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='planner-backup.json';a.click();URL.revokeObjectURL(a.href)};
+
+// اعلان‌های ویندوز از طریق قابلیت Notifications مرورگر
+function showDesktopNotice(title,body){
+  if(!('Notification' in window))throw new Error('این مرورگر از اعلان دسکتاپ پشتیبانی نمی‌کند.');
+  if(Notification.permission!=='granted')throw new Error('مجوز اعلان فعال نیست.');
+  if(window.isSecureContext===false)throw new Error('اعلان فقط روی آدرس امن HTTPS فعال می‌شود؛ فایل را به‌صورت سایت HTTPS باز کن.');
+  const payload={title,options:{body,tag:'planner-'+Date.now(),icon:'icon.svg',badge:'icon.svg'}};
+  if('serviceWorker' in navigator && navigator.serviceWorker.controller){
+    navigator.serviceWorker.ready.then(reg=>reg.showNotification(payload.title,payload.options));
+    return true;
+  }
+  return new Notification(title,payload.options);
+}
+$('enableNotifications').addEventListener('click',async()=>{
+  if(!('Notification' in window)){alert('این مرورگر از اعلان دسکتاپ پشتیبانی نمی‌کند. فایل را با Edge یا Chrome باز کن.');return}
+  try{
+    const permission=await Notification.requestPermission();
+    if(permission==='granted'){alert('مجوز اعلان فعال شد. حالا روی «آزمایش اعلان» بزن تا نمایش اعلان ویندوز را بررسی کنیم.');}
+    else alert('مجوز اعلان داده نشد. از تنظیمات سایت/مرورگر، Notifications را مجاز کن.');
+  }catch(e){alert('مرورگر اجازه فعال‌سازی اعلان را نداد: '+e.message)}
+});
+$('testNotification').addEventListener('click',()=>{
+  try{showDesktopNotice('آزمایش برنامه‌ریز کارها','اگر این پیام را می‌بینی، اعلان دسکتاپ کار می‌کند.');}
+  catch(e){alert('اعلان ارسال نشد: '+e.message+'\\n\\nدر ویندوز Settings > System > Notifications را بررسی کن و اعلان‌های Microsoft Edge یا Google Chrome را روشن کن.')}
+});
+const notifiedKey='myWorkPlanner_notified_v1';
+let notified={};try{notified=JSON.parse(localStorage.getItem(notifiedKey)||'{}')}catch(e){}
+function dueFor(t){
+  if(t.done)return null;
+  if(t.kind==='periodic')return nextDate(t);
+  if(!t.due)return null;
+  return new Date(t.due+'T'+(t.time||'09:00')+':00');
+}
+function checkNotifications(){
+  if(!('Notification' in window)||Notification.permission!=='granted')return;
+  const now=Date.now();
+  tasks.forEach(t=>{
+    const due=dueFor(t);if(!due||Number.isNaN(due.getTime())||due.getTime()>now)return;
+    const token=t.kind==='periodic'?(t.lastDone||t.firstDue||t.id):t.id+'_'+t.due+'_'+(t.time||'');
+    if(notified[t.id]===token)return;
+    try{
+      showDesktopNotice(t.kind==='periodic'?'زمان کار دوره‌ای رسیده':'زمان انجام کار رسیده',
+        t.title+(t.kind==='periodic'?' · '+duration(t):''));
+      notified[t.id]=token;localStorage.setItem(notifiedKey,JSON.stringify(notified));
+    }catch(e){/* تا زمان موفقیت، دوباره تلاش می‌کند */}
+  });
+}
+setInterval(checkNotifications,15000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkNotifications()});
+checkNotifications();
+if('serviceWorker' in navigator && window.isSecureContext){
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(err=>console.warn('Service worker registration failed',err)));
+}
+render();
+</script></body></html>
